@@ -59,33 +59,16 @@ This means insights are powerful but still regeneratable, auditable, and grounde
 ## Architecture At A Glance 🧭
 
 ```mermaid
-flowchart TB
-  subgraph Applications
-    WEB[Web UI]
-    API[API Service]
-    HERMES[Hermes]
-    WORKER[Worker]
-  end
+flowchart LR
+  WEB[Web UI] --> API[API Service]
+  API --> PG[(PostgreSQL)]
+  API -. parse quick-add .-> HERMES[Hermes]
 
-  subgraph Data
-    PG[(PostgreSQL)]
-    REDIS[(Redis)]
-  end
+  WORKER[Worker] --> REDIS[(Redis)]
+  BACKUP[Postgres Backup] --> PG
 
-  subgraph Operations
-    BACKUP[Postgres Backup]
-    OPS[Ops Monitor]
-  end
-
-  WEB --> API
-  API --> HERMES
-  API --> PG
-  WORKER --> REDIS
-  WORKER --> PG
-  BACKUP --> PG
-  OPS --> API
-  OPS --> HERMES
-  OPS --> BACKUP
+  WORKER_NOTE["Worker also persists processed facts to PostgreSQL"]
+  OPS_NOTE["Ops Monitor checks API, Web, Hermes, and backup freshness"]
 ```
 
 ## 60-Second Quick Start 🚀
