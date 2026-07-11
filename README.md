@@ -32,6 +32,30 @@ Life OS helps you capture and connect health, home, vehicle, and personal events
 - Ops monitor for health + backup freshness
 - One-command install and update scripts
 
+## Ask Questions About Your Life Data 💬
+
+Life OS is built so you can query your personal data in natural language and get useful, context-aware answers.
+
+Examples:
+
+- "How has my weight trended over the last 90 days?"
+- "When did I last change my furnace filter?"
+- "Show my oil change cadence for the Highlander."
+- "Are there any unusual patterns in my sleep and resting heart rate this month?"
+
+## Real-Time AI Analysis And Recommendations 🧪
+
+As new events and measurements are captured, Hermes can parse and classify data quickly so your timeline stays current and queryable.
+
+The intelligence layer is designed to:
+
+- continuously analyze incoming life signals
+- detect patterns and anomalies
+- surface practical recommendations
+- keep AI outputs separate from canonical facts
+
+This means insights are powerful but still regeneratable, auditable, and grounded in your own data model.
+
 ## Architecture At A Glance 🧭
 
 ```mermaid
