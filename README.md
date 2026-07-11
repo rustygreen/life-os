@@ -75,9 +75,7 @@ flowchart LR
 
 ## 60-Second Quick Start 🚀
 
-1. Clone and enter the repo.
-2. Copy environment template.
-3. Run one command.
+For a production-like local stack with Docker-managed services:
 
 Linux/macOS 🐧🍎:
 
@@ -98,6 +96,92 @@ Open 🌐:
 - Web: http://localhost:3000
 - API health: http://localhost:4000/health
 - Hermes health: http://localhost:4010/health
+
+## Local Development From Zero 🧭
+
+This is the exact workflow for coding locally.
+
+You can run local development without creating a `.env` file if you use the default local ports and credentials.
+Create `.env` only when you want custom settings, tokens, or provider keys.
+
+### Prerequisites
+
+1. Git
+2. Node.js 22+
+3. npm 11+
+4. Docker + Docker Compose
+
+### Step-by-step
+
+1. Clone and enter the repository.
+
+```bash
+git clone <your-fork-or-repo-url>
+cd life-os
+```
+
+2. (Optional) Create your local environment file.
+
+Linux/macOS 🐧🍎:
+
+```bash
+cp .env.example .env
+```
+
+Windows PowerShell 🪟:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Skip this step if defaults are fine.
+
+3. Start required infrastructure services with Docker (PostgreSQL + Redis).
+
+```bash
+docker compose up -d postgres redis
+```
+
+4. Install Node dependencies.
+
+```bash
+npm install
+```
+
+5. Run database migrations.
+
+```bash
+npm run db:migrate
+```
+
+6. Start all development services from source.
+
+```bash
+npm run dev
+```
+
+7. Open the app.
+
+- Web: http://localhost:3000
+- API health: http://localhost:4000/health
+- Hermes health: http://localhost:4010/health
+
+### Stop local development
+
+1. Stop Node dev processes with Ctrl+C.
+2. Stop infrastructure containers when needed:
+
+```bash
+docker compose stop postgres redis
+```
+
+### Important local dev note
+
+- Recommended setup is Docker for infrastructure and Node for app services.
+- If you run only Node, you still need reachable PostgreSQL and Redis instances.
+- Defaults used by local code are:
+  - PostgreSQL: `postgresql://life_os:life_os@localhost:5432/life_os`
+  - Redis: `redis://localhost:6379`
 
 ## Configuration Made Simple ⚙️
 
@@ -185,7 +269,9 @@ Windows PowerShell 🪟:
 
 ```bash
 npm install
+npm run db:migrate
 npm run typecheck
+npm run dev
 npm run dev:api
 npm run dev:hermes
 npm run dev:web

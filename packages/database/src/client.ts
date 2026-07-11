@@ -4,11 +4,9 @@ let pool: Pool | undefined;
 
 export function getPool(): Pool {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
-
-    if (!connectionString) {
-      throw new Error("DATABASE_URL is required");
-    }
+    const connectionString =
+      process.env.DATABASE_URL ??
+      "postgresql://life_os:life_os@localhost:5432/life_os";
 
     pool = new Pool({
       connectionString
