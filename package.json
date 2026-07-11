@@ -1,0 +1,27 @@
+{
+  "name": "life-os",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w @life-os/api",
+    "dev:hermes": "npm run dev -w @life-os/hermes",
+    "dev:web": "npm run dev -w @life-os/web",
+    "dev:worker": "npm run dev -w @life-os/worker",
+    "db:migrate": "npm run migrate -w @life-os/database",
+    "typecheck": "npm run typecheck -w @life-os/shared && npm run typecheck -w @life-os/ai && npm run typecheck -w @life-os/database && npm run typecheck -w @life-os/hermes && npm run typecheck -w @life-os/api && npm run typecheck -w @life-os/worker && npm run typecheck -w @life-os/web",
+    "build": "npm run build -w @life-os/shared && npm run build -w @life-os/ai && npm run build -w @life-os/database && npm run build -w @life-os/hermes && npm run build -w @life-os/api && npm run build -w @life-os/worker && npm run build -w @life-os/web"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

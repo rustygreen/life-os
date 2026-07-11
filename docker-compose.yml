@@ -1,0 +1,203 @@
+services:
+  postgres:
+    image: postgres:18
+    container_name: life-os-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-life_os}
+      POSTGRES_USER: ${POSTGRES_USER:-life_os}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-life_os}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-life_os} -d ${POSTGRES_DB:-life_os}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  postgres-backup:
+    image: postgres:18
+    container_name: life-os-postgres-backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-life_os}
+      POSTGRES_USER: ${POSTGRES_USER:-life_os}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-life_os}
+      POSTGRES_BACKUP_KEEP_DAYS: ${POSTGRES_BACKUP_KEEP_DAYS:-14}
+      POSTGRES_BACKUP_INTERVAL_SECONDS: ${POSTGRES_BACKUP_INTERVAL_SECONDS:-86400}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ${POSTGRES_BACKUP_DIR:-./backups/postgres}:/backups
+    entrypoint: ["/bin/sh", "-c"]
+    command: |
+      set -eu
+      backup_once() {
+        timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
+        output="/backups/life_os_${timestamp}.sql.gz"
+        export PGPASSWORD="${POSTGRES_PASSWORD}"
+        pg_dump \
+          --host="${POSTGRES_HOST}" \
+          --username="${POSTGRES_USER}" \
+          --dbname="${POSTGRES_DB}" \
+          --no-owner \
+          --no-privileges \
+          | gzip > "${output}"
+        find /backups -type f -name '*.sql.gz' -mtime +"${POSTGRES_BACKUP_KEEP_DAYS}" -delete
+      }
+
+      backup_once
+      while true; do
+        sleep "${POSTGRES_BACKUP_INTERVAL_SECONDS}"
+        backup_once
+      done
+
+  redis:
+    image: redis:7-alpine
+    container_name: life-os-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "6379:6379"
+
+  api:
+    image: ${LIFE_OS_IMAGE_API:-life-os-api}:${LIFE_OS_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    container_name: life-os-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      API_PORT: 4000
+      API_CORS_ORIGINS: ${API_CORS_ORIGINS:-http://localhost:3000}
+      API_RATE_LIMIT_MAX: ${API_RATE_LIMIT_MAX:-600}
+      API_RATE_LIMIT_WINDOW: ${API_RATE_LIMIT_WINDOW:-1 minute}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-life_os}:${POSTGRES_PASSWORD:-life_os}@postgres:5432/${POSTGRES_DB:-life_os}
+      REDIS_URL: redis://redis:6379
+      HERMES_URL: ${HERMES_URL:-http://hermes:4010}
+      HERMES_MODE: ${HERMES_MODE:-fallback}
+      HERMES_API_TOKEN: ${HERMES_API_TOKEN:-}
+      LIFE_OS_DEFAULT_WORKSPACE_SLUG: ${LIFE_OS_DEFAULT_WORKSPACE_SLUG:-default}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      hermes:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:4000/health >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    ports:
+      - "4000:4000"
+
+  worker:
+    image: ${LIFE_OS_IMAGE_WORKER:-life-os-worker}:${LIFE_OS_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    container_name: life-os-worker
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-life_os}:${POSTGRES_PASSWORD:-life_os}@postgres:5432/${POSTGRES_DB:-life_os}
+      REDIS_URL: redis://redis:6379
+      LIFE_OS_DEFAULT_WORKSPACE_SLUG: ${LIFE_OS_DEFAULT_WORKSPACE_SLUG:-default}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  hermes:
+    image: ${LIFE_OS_IMAGE_HERMES:-life-os-hermes}:${LIFE_OS_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/hermes.Dockerfile
+    container_name: life-os-hermes
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HERMES_PORT: 4010
+      HERMES_API_TOKEN: ${HERMES_API_TOKEN:-}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:4010/health >/dev/null || exit 1",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  web:
+    image: ${LIFE_OS_IMAGE_WEB:-life-os-web}:${LIFE_OS_IMAGE_TAG:-local}
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:4000}
+    container_name: life-os-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    ports:
+      - "3000:80"
+
+  ops-monitor:
+    build:
+      context: .
+      dockerfile: docker/ops/Dockerfile
+    container_name: life-os-ops-monitor
+    restart: unless-stopped
+    environment:
+      OPS_MONITOR_INTERVAL_SECONDS: ${OPS_MONITOR_INTERVAL_SECONDS:-300}
+      OPS_MONITOR_MAX_BACKUP_AGE_SECONDS: ${OPS_MONITOR_MAX_BACKUP_AGE_SECONDS:-172800}
+      OPS_ALERT_WEBHOOK_URL: ${OPS_ALERT_WEBHOOK_URL:-}
+      OPS_ALERT_MIN_SECONDS_BETWEEN_NOTIFICATIONS: ${OPS_ALERT_MIN_SECONDS_BETWEEN_NOTIFICATIONS:-1800}
+      OPS_API_HEALTH_URL: http://api:4000/health
+      OPS_WEB_HEALTH_URL: http://web/
+      OPS_HERMES_HEALTH_URL: http://hermes:4010/health
+    depends_on:
+      api:
+        condition: service_started
+      web:
+        condition: service_started
+      hermes:
+        condition: service_started
+      postgres-backup:
+        condition: service_started
+    volumes:
+      - ${POSTGRES_BACKUP_DIR:-./backups/postgres}:/backups:ro
+
+volumes:
+  postgres_data:

@@ -1,0 +1,50 @@
+name: Bug report
+description: Report a reproducible problem in Life OS
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please provide clear reproduction details.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened and what did you expect?
+      placeholder: Briefly describe the bug and expected behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps so maintainers can reproduce.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Submit ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Paste logs, stack traces, or command output.
+      render: shell
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Docker version, and any relevant setup details.
+      placeholder: |
+        OS:
+        Docker:
+        Compose:
+        Branch/commit:

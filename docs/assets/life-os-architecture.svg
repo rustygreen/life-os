@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-label="Life OS architecture diagram">
+  <defs>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill: #0f172a; }
+      .label { font: 600 16px Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 13px Arial, sans-serif; fill: #334155; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 14; }
+      .db { fill: #eef6ff; stroke: #5b8def; stroke-width: 2; rx: 14; }
+      .ai { fill: #f4ecff; stroke: #8b5cf6; stroke-width: 2; rx: 14; }
+      .ops { fill: #ecfdf5; stroke: #16a34a; stroke-width: 2; rx: 14; }
+      .arrow { stroke: #475569; stroke-width: 2.2; marker-end: url(#arrowhead); fill: none; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569" />
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="520" fill="#f8fafc"/>
+  <text x="40" y="48" class="title">Life OS Runtime Architecture</text>
+
+  <rect x="40" y="100" width="180" height="90" class="box"/>
+  <text x="70" y="138" class="label">Web UI</text>
+  <text x="70" y="162" class="small">React + Vite</text>
+
+  <rect x="280" y="90" width="220" height="110" class="box"/>
+  <text x="330" y="135" class="label">API Service</text>
+  <text x="330" y="160" class="small">Auth, Timeline, Quick Add</text>
+
+  <rect x="280" y="250" width="220" height="100" class="box"/>
+  <text x="335" y="292" class="label">Worker</text>
+  <text x="335" y="316" class="small">Jobs + Enrichment</text>
+
+  <rect x="560" y="90" width="220" height="110" class="ai"/>
+  <text x="625" y="135" class="label">Hermes</text>
+  <text x="605" y="160" class="small">AI Router + Parsing</text>
+
+  <rect x="840" y="70" width="300" height="120" class="db"/>
+  <text x="930" y="120" class="label">PostgreSQL</text>
+  <text x="890" y="145" class="small">Canonical source of truth</text>
+  <text x="930" y="168" class="small">Backed up automatically</text>
+
+  <rect x="840" y="220" width="300" height="90" class="box"/>
+  <text x="955" y="260" class="label">Redis</text>
+  <text x="928" y="284" class="small">Queue + transient state</text>
+
+  <rect x="40" y="360" width="740" height="120" class="ops"/>
+  <text x="70" y="402" class="label">Operational Layer</text>
+  <text x="70" y="428" class="small">One-command install/update, immutable release rollout, health checks, backup freshness monitor</text>
+
+  <rect x="840" y="350" width="300" height="130" class="ops"/>
+  <text x="915" y="392" class="label">Ops Monitor + Backup</text>
+  <text x="880" y="418" class="small">Checks API/Web/Hermes health</text>
+  <text x="880" y="440" class="small">Alerts on stale/missing backups</text>
+
+  <path class="arrow" d="M220 145 L280 145"/>
+  <path class="arrow" d="M500 145 L560 145"/>
+  <path class="arrow" d="M500 145 L840 130"/>
+  <path class="arrow" d="M500 300 L840 265"/>
+  <path class="arrow" d="M500 300 L840 130"/>
+  <path class="arrow" d="M780 145 L840 130"/>
+  <path class="arrow" d="M1020 350 L1020 310"/>
+  <path class="arrow" d="M1020 350 L1020 190"/>
+</svg>
